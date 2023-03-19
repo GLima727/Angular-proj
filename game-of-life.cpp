@@ -5,17 +5,19 @@
 #include <chrono>
 #include <thread>
 
-#define COLUMNS 30
-#define ROWS 30
+#define COLUMNS 100
+#define ROWS 100
 
-#define CELL_WIDTH 10
-#define CELL_HEIGHT 10
+#define CELL_WIDTH 5
+#define CELL_HEIGHT 5
 
 #define ALIVE 1
 #define DEAD 0
 
-#define CHANCE_TO_LIVE 10 //in % change of cells to be alive in the beggining board
+#define CHANCE_TO_LIVE 1 //in % change of cells to be alive in the beggining board
 #define COLOR 0, 128, 128 //color of the cells in rbb
+
+#define RUN_TIME 0.0f //time between generations
 
 // get the desktop (screen) dimensions
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -41,7 +43,7 @@ std::vector<std::vector<int>> nextgen_matrix(COLUMNS, std::vector<int>(ROWS, 0))
 //define what a cell looks like
 int drawCell(int i, int j) {
     cell.setFillColor(sf::Color(COLOR));
-    cell.setPosition(i * CELL_WIDTH, j * CELL_HEIGHT);
+    cell.setPosition((i + x_start) * CELL_WIDTH, (j + y_start) * CELL_HEIGHT);
     cell.setOutlineThickness(1);
     cell.setOutlineColor(sf::Color::Black);
 
@@ -51,7 +53,7 @@ int drawCell(int i, int j) {
 //will draw the cell as black
 int deleteCell(int i, int j) {
     cell.setFillColor(sf::Color::Black);
-    cell.setPosition(i * CELL_WIDTH, j * CELL_HEIGHT);
+    cell.setPosition((i + x_start) * CELL_WIDTH, (j + y_start) * CELL_HEIGHT);
 
     return 0;
 }
@@ -59,8 +61,8 @@ int deleteCell(int i, int j) {
 //will draw the field one time and define a random start of dead and alive cells
 int drawField() {
 
-    for (int i = x_start; i < COLUMNS + x_start; i++) {
-        for (int j = y_start; j < ROWS + y_start; j++) {
+    for (int i = 0; i < COLUMNS; i++) {
+        for (int j = 0; j < ROWS; j++) {
 
             drawCell(i, j);
 
@@ -68,10 +70,10 @@ int drawField() {
             
             if (chanceToDraw < CHANCE_TO_LIVE) {
                 window.draw(cell);
-                matrix[i - x_start][j - y_start] = ALIVE;
+                matrix[i][j] = ALIVE;
             }
             else {
-                matrix[i - x_start][j - y_start] = DEAD;
+                matrix[i][j] = DEAD;
             }
         }
     }
@@ -89,9 +91,9 @@ int getNeighbours(int col, int row) {
     for (int i = col - 1; i <= col + 1; i++) {
         for (int j = row - 1; j <= row + 1; j++) {
 
-            if (i-x_start >= 0 && i-x_start < COLUMNS && j-y_start >= 0 && j-y_start < ROWS && (i != col || j != row)) {
+            if (i >= 0 && i < COLUMNS && j >= 0 && j < ROWS && (i != col || j != row)) {
 
-                if (matrix[i-x_start][j-y_start] == ALIVE) {
+                if (matrix[i][j] == ALIVE) {
                     res++;
                 }
             }
@@ -106,19 +108,19 @@ int getNextGen() {
 
     int alive_neighbours = 0;
 
-    for (int i = x_start; i < COLUMNS + x_start; i++) {
-        for (int j = y_start; j < ROWS + y_start; j++) {
+    for (int i = 0; i < COLUMNS; i++) {
+        for (int j = 0; j < ROWS; j++) {
 
             alive_neighbours = getNeighbours(i, j);
             
             if (alive_neighbours <= 1 || alive_neighbours >= 4) {
 
-                nextgen_matrix[i - x_start][j - y_start] = DEAD;
+                nextgen_matrix[i][j] = DEAD;
             }
 
             else if (alive_neighbours == 2 || alive_neighbours == 3) {
 
-                nextgen_matrix[i-x_start][j-y_start] = ALIVE;
+                nextgen_matrix[i][j] = ALIVE;
             }
 
         }
@@ -130,11 +132,11 @@ int getNextGen() {
 //will draw the next gen matrix and update the old one
 int drawNextGen() {
 
-    for (int i = x_start; i < COLUMNS + x_start; i++) {
-        for (int j = y_start; j < ROWS + y_start; j++) {
-            matrix[i - x_start][j - y_start] = nextgen_matrix[i - x_start][j - y_start];
+    for (int i = 0; i < COLUMNS; i++) {
+        for (int j = 0; j < ROWS; j++) {
+            matrix[i][j] = nextgen_matrix[i][j];
 
-            if (matrix[i - x_start][j - y_start] == ALIVE) {
+            if (matrix[i][j] == ALIVE) {
                 drawCell(i, j);
                 window.draw(cell);
             }
@@ -154,11 +156,18 @@ int drawNextGen() {
 int main() {
 
     int paused = 0;
+    sf::Clock clock;
+    sf::Time elapsed = sf::Time::Zero;
+
     // Start the game loop
     while (window.isOpen())
     {
         // Process events
         sf::Event event;
+
+        elapsed += clock.restart(); 
+        window.setFramerateLimit(60);
+
         while (window.pollEvent(event))
         {
             // Close window: exit
@@ -176,8 +185,12 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) paused = 0;
 
         if (!paused) {
-            getNextGen();
-            drawNextGen();
+            if (elapsed.asSeconds() >= RUN_TIME) {
+                elapsed = sf::Time::Zero;
+                getNextGen();
+                drawNextGen();
+            }
+
         }
     }
     return EXIT_SUCCESS;
