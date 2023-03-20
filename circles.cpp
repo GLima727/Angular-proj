@@ -8,7 +8,7 @@
 
 #define SELF_SIZE 10
 
-#define M_PI atan(1) * 4
+//#define M_PI atan(1) * 4
 
 #define RIGHT 0.0
 #define BOTTOM_RIGHT 45.0
@@ -49,10 +49,10 @@ sf::Vector2f moveSelf(sf::RenderWindow* window, sf::Sprite background, sf::Circl
 
         position.x += dx;
         position.y += dy;
-        //std::cout << "x" << dx << "y" << dy << std::endl;
-        distance -= abs(dx) + abs(dy);
 
-        (*window).draw(background);
+        distance -= fabs(dx) + fabs(dy); 
+
+        //(*window).draw(background);
         drawSelf(window, self, position);
 
         (*window).display();
@@ -133,10 +133,9 @@ int main() {
 
         for (int i = 0; i <= 360; i += 1) {
 			position = moveSelf(&window,background, self, position, 10, i, 1);
-
 		}
 
-        view.move(sf::Vector2f(0, 20));
+        view.move(sf::Vector2f(0, 2));
         window.setView(view);
 
     }
