@@ -20,27 +20,16 @@
 #define TOP_RIGHT 315.0
 
 //define what a cell looks like
-int drawSelf(sf::RenderWindow *window, sf::CircleShape self , sf::Vector2f center) {
+int drawSelf(sf::RenderWindow *window, sf::CircleShape self , sf::Color color, sf::Vector2f position) {
 
-    self.setFillColor(sf::Color::Blue);
-    self.setPosition(center.x, center.y);
+    self.setPosition(position.x, position.y);
+    self.setFillColor(color);
     (*window).draw(self);
 
     return 0;
 }
 
-int drawHalo(sf::CircleShape self, sf::Vector2f center) {
-    self.setFillColor(sf::Color::Transparent);
-    self.setPosition(center.x, center.y);
-    self.setOutlineThickness(10);
-    self.setOutlineColor(sf::Color::Red);
-
-    return 0;
-}
-
-sf::Vector2f moveSelf(sf::RenderWindow* window, sf::Sprite background, sf::CircleShape self, sf::Vector2f start, int distance, float angle, float speed) {
-
-    sf::Vector2f position = start;
+sf::Vector2f moveSelf(sf::RenderWindow* window, sf::Sprite background, sf::CircleShape self, sf::Color color, sf::Vector2f position, int distance, float angle, float speed) {
 
     float dx = speed * std::cos(angle * M_PI / 180.f);
     float dy = speed * std::sin(angle * M_PI / 180.f);
@@ -51,9 +40,10 @@ sf::Vector2f moveSelf(sf::RenderWindow* window, sf::Sprite background, sf::Circl
         position.y += dy;
 
         distance -= fabs(dx) + fabs(dy); 
+        std::cout << "distance" << distance << std::endl;
 
         //(*window).draw(background);
-        drawSelf(window, self, position);
+        drawSelf(window, self, color, position);
 
         (*window).display();
         (*window).clear();
@@ -82,14 +72,22 @@ int main() {
 
     sf::Sprite background(texture);
 
-    sf::CircleShape self(SELF_SIZE);
+    sf::CircleShape self(SELF_SIZE + 20);
+
+    sf::CircleShape self2(SELF_SIZE+ 40);
+
+    sf::CircleShape self3(SELF_SIZE + 50);
 
     std::cout << "windowWidth: " << windowWidth << "windowheight" << windowHeight << std::endl;
 
     sf::View view(sf::FloatRect(0, 0, windowWidth, windowHeight));
 
     sf::Vector2f center((windowWidth / 2) - SELF_SIZE, (windowHeight / 2) - SELF_SIZE);
+    sf::Vector2f center2((windowWidth / 2) - SELF_SIZE + 30, (windowHeight / 2) - SELF_SIZE + 30);
+    sf::Vector2f center3((windowWidth / 2) - SELF_SIZE + 50, (windowHeight / 2) - SELF_SIZE + 50);
+
     sf::Vector2f position = center;
+    
 
     int toggle = 1;
 
@@ -131,11 +129,20 @@ int main() {
         }
 
 
-        for (int i = 0; i <= 360; i += 1) {
-			position = moveSelf(&window,background, self, position, 10, i, 1);
-		}
+        for (int i = 0; i <= 100; i += 1) {
+            float lol = static_cast<float>(std::rand() % 360);          
 
-        view.move(sf::Vector2f(0, 2));
+			position = moveSelf(&window,background, self, sf::Color::Blue, position, 10, lol, 1);
+            center2 = moveSelf(&window,background, self2, sf::Color::Red, center2, 10, lol + 100, 1);
+                        center3 = moveSelf(&window,background, self3, sf::Color::Green, center3, 10, -lol, 1);
+
+
+		}
+        // for (int i = 0; i <= 100; i += 1) {
+        //     float lol = static_cast<float>(std::rand() % 360);
+		// 	position = moveSelf(&window,background, self2, sf::Color::Red, position, 20, lol, 0.1);
+            
+		// }
         window.setView(view);
 
     }
